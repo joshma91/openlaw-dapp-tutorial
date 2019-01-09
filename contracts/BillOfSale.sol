@@ -1,13 +1,13 @@
 pragma solidity ^0.5.0;
 
 contract BillOfSale {
-  address public seller;
+  address payable public seller;
   address public buyer;
   string public descr;
   uint public price;
 
   function recordContract(string memory _descr, uint _price,
-    address _seller, address _buyer
+    address payable _seller, address _buyer
   ) public {
     descr = _descr;
     price = _price;
@@ -15,11 +15,11 @@ contract BillOfSale {
     buyer = _buyer;
   }
 
-  function () public payable { }
+  function () external payable { }
 
-  function confirmReceipt() public {
+  function confirmReceipt() public payable {
     require(msg.sender == buyer, "only buyer can confirm");
-    require(this.balance == price, "purchase price must be funded");
-    seller.transfer(address(this).balance);
+    require(address(this).balance == price, "purchase price must be funded");
+    address(seller).transfer(address(this).balance);
   }
 }
