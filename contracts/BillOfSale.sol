@@ -6,11 +6,8 @@ contract BillOfSale {
   string public descr;
   uint public price;
 
-  function recordContract(
-    string _descr,
-    uint _price,
-    address _seller,
-    address _buyer
+  function recordContract(string memory _descr, uint _price,
+    address _seller, address _buyer
   ) public {
     descr = _descr;
     price = _price;
