@@ -44,33 +44,44 @@ class App extends Component {
   };
 
   onFundClick = async () => {
-    const { contract, accounts, web3, price } = this.state
-    console.log(accounts)
-    web3.eth.sendTransaction({from: accounts[0], to: contract.address, value:price});
-  }
-  
+    const { contract, accounts, web3, price } = this.state;
+    web3.eth.sendTransaction({
+      from: accounts[0],
+      to: contract.address,
+      value: price
+    });
+  };
 
   onConfirmClick = async () => {
-    alert("clicked!");
+    const { contract, accounts } = this.state;
+    contract.confirmReceipt({ from: accounts[0] });
   };
 
   runExample = async () => {
     const { contract, web3 } = this.state;
-    
-    const balance = await web3.eth.getBalance(contract.address) 
+
+    const balance = await web3.eth.getBalance(contract.address);
     const seller = await contract.seller();
     const buyer = await contract.buyer();
     const descr = await contract.descr();
     const priceBN = await contract.price();
     const price = priceBN.toNumber();
     const status = await contract.confirmed();
-    const statusMessage = this.setStatusMessage(status, parseInt(balance), price)
+    const statusMessage = this.setStatusMessage(
+      status,
+      parseInt(balance),
+      price
+    );
     this.setState({ balance, seller, buyer, descr, price, statusMessage });
   };
 
   setStatusMessage = (status, balance, price) => {
-    return status ? "Receipt Confirmed!" : ((balance === price) ? "Payment Made" : "Awaiting Payment")   
-  }
+    return status
+      ? "Receipt Confirmed!"
+      : balance === price
+      ? "Payment Made"
+      : "Awaiting Payment";
+  };
 
   render() {
     if (!this.state.web3) {
@@ -79,7 +90,9 @@ class App extends Component {
     return (
       <div className="App">
         <h1>Bill of Sale</h1>
-        <div>Agreement Status: {this.state.statusMessage} </div>
+        <div>
+          Agreement Status: <strong>{this.state.statusMessage}</strong>
+        </div>
         <div>Contract Address: {this.state.contract.address}</div>
         <div>Contract Balance: {this.state.balance / 10 ** 18}</div>
         <div>Seller: {this.state.seller}</div>
