@@ -5,6 +5,7 @@ contract BillOfSale {
   address public buyer;
   string public descr;
   uint public price;
+  bool public confirmed;
 
   function recordContract(string memory _descr, uint _price,
     address payable _seller, address _buyer
@@ -21,5 +22,6 @@ contract BillOfSale {
     require(msg.sender == buyer, "only buyer can confirm");
     require(address(this).balance == price, "purchase price must be funded");
     address(seller).transfer(address(this).balance);
+    confirmed = true;
   }
 }

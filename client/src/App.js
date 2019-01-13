@@ -1,12 +1,22 @@
 import React, { Component } from "react";
-import SimpleStorageContract from "./contracts/BillOfSale.json";
+import BillOfSaleContract from "./contracts/BillOfSale.json";
 import getWeb3 from "./utils/getWeb3";
 import truffleContract from "truffle-contract";
 
 import "./App.css";
 
 class App extends Component {
-  state = { seller: null, buyer: null, descr: null, price: 0, web3: null, accounts: null, contract: null };
+  state = {
+    balance: 0,
+    seller: null,
+    buyer: null,
+    descr: null,
+    price: 0,
+    statusMessage: "",
+    web3: null,
+    accounts: null,
+    contract: null
+  };
 
   componentDidMount = async () => {
     try {
@@ -17,7 +27,7 @@ class App extends Component {
       const accounts = await web3.eth.getAccounts();
 
       // Get the contract instance.
-      const Contract = truffleContract(SimpleStorageContract);
+      const Contract = truffleContract(BillOfSaleContract);
       Contract.setProvider(web3.currentProvider);
       const instance = await Contract.deployed();
 
@@ -33,16 +43,34 @@ class App extends Component {
     }
   };
 
-  runExample = async () => {
-    const { contract } = this.state;
+  onFundClick = async () => {
+    const { contract, accounts, web3, price } = this.state
+    console.log(accounts)
+    web3.eth.sendTransaction({from: accounts[0], to: contract.address, value:price});
+  }
+  
 
-    const seller = await contract.seller()
-    const buyer = await contract.buyer()
-    const descr = await contract.descr()
-    const price = await contract.price()
-
-    this.setState({ seller, buyer, descr, price: price.toNumber() });
+  onConfirmClick = async () => {
+    alert("clicked!");
   };
+
+  runExample = async () => {
+    const { contract, web3 } = this.state;
+    
+    const balance = await web3.eth.getBalance(contract.address) 
+    const seller = await contract.seller();
+    const buyer = await contract.buyer();
+    const descr = await contract.descr();
+    const priceBN = await contract.price();
+    const price = priceBN.toNumber();
+    const status = await contract.confirmed();
+    const statusMessage = this.setStatusMessage(status, parseInt(balance), price)
+    this.setState({ balance, seller, buyer, descr, price, statusMessage });
+  };
+
+  setStatusMessage = (status, balance, price) => {
+    return status ? "Receipt Confirmed!" : ((balance === price) ? "Payment Made" : "Awaiting Payment")   
+  }
 
   render() {
     if (!this.state.web3) {
@@ -51,10 +79,19 @@ class App extends Component {
     return (
       <div className="App">
         <h1>Bill of Sale</h1>
+        <div>Agreement Status: {this.state.statusMessage} </div>
+        <div>Contract Address: {this.state.contract.address}</div>
+        <div>Contract Balance: {this.state.balance / 10 ** 18}</div>
         <div>Seller: {this.state.seller}</div>
         <div>Buyer: {this.state.buyer}</div>
         <div>Description: {this.state.descr}</div>
-        <div>Price: {this.state.price/(10**18)}</div>
+        <div>Price: {this.state.price / 10 ** 18} ETH</div>
+        <div>
+          <button onClick={() => this.onFundClick()}>Fund Contract</button>
+        </div>
+        <div>
+          <button onClick={() => this.onConfirmClick()}>Confirm Receipt</button>
+        </div>
       </div>
     );
   }
