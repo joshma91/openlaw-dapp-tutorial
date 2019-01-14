@@ -65,7 +65,7 @@ class App extends Component {
     const buyer = await contract.buyer();
     const descr = await contract.descr();
     const priceBN = await contract.price();
-    const price = priceBN.toNumber();
+    const price = priceBN.toString(10)
     const status = await contract.confirmed();
     const statusMessage = this.setStatusMessage(
       status,
